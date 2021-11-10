@@ -13,6 +13,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const generateRandomString = (length) => {
+
+  const characters ='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  
+      let randomCharacters = ' ';
+     
+      for ( let i = 0; i < length; i++ ) {
+          randomCharacters += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return randomCharacters;
+    }
+  //generateRandomString();
+
 
 // index page or Home page.
 app.get("/", (req, res) => {
@@ -51,23 +64,17 @@ app.get("/urls/:shortURL", (req, res) => {
 }); 
 
 app.post('/urls', (req, res) => {
-  console.log(req.body) //Log the POST request body to the 
-  res.send("OK"); //Respond with "OK".
+  console.log(req.body); //Log the POST request body to the console.
+  //Update express server so shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
+  const shortURL = generateRandomString(6);
+  const longURL = req.body.longURL; 
+  // Update the database, urlDatabase
+  urlDatabase[shortURL] = longURL;  
+  res.redirect(`/urls/${shortURL}`);
+  //res.send("OK"); //Respond with "OK".
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-const generateRandomString = (length) => {
-
-  const characters ='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  
-      let randomCharacters = ' ';
-     
-      for ( let i = 0; i < length; i++ ) {
-          randomCharacters += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      return randomCharacters;
-    }
-  generateRandomString(6);
