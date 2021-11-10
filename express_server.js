@@ -15,6 +15,14 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>Friend!</b></body></html>\n");
+});
+
+app.get("/About-Me", (req, res) => {
+  res.send("I am a student web developer at Lighthouse Labs.")
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
