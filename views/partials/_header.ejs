@@ -11,6 +11,11 @@
         <a class="nav-item nav-link" href="/urls/About-Me">About Me</a>
         <a class="nav-item nav-link" href="/register">Register</a>
       </div>
+      <% if (typeof user === 'object') { %>
+        <div>
+          <%= user.email %>
+        </div>
+      <% } %>
     </div>
   </nav>
 </header>
