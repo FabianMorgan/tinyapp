@@ -70,6 +70,9 @@ const users = {
 // register a new user
 app.get('/register', (req, res) => {
   const user_id = req.cookies.user_id;
+  if (user_id) {
+    return res.redirect('/urls');
+  }
   const user = users[user_id];
   res.render("register", { user });
 });
@@ -103,6 +106,9 @@ app.post('/register', (req, res) => {
 // login existing user
 app.get('/login', (req, res) => {
   const user_id = req.cookies.user_id;
+  if (user_id) {
+    return res.redirect('/urls');
+  }
   const user = users[user_id];
   res.render("login", { user });
 });
@@ -135,8 +141,16 @@ app.post('/login', (req, res) => {
   res.status(400).send("Incorrect Login");
 });
 
+app.post('/logout', (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect('/login');
+});
+
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
+  if (!user_id) {
+    return res.redirect('/login');
+  }
   const user = users[user_id];
   const templateVars = { urls: urlDatabase, user };
   res.render("urls_index", templateVars);
@@ -145,12 +159,18 @@ app.get("/urls", (req, res) => {
 //Add get route to show form in urls_new.ejs
 app.get('/urls/new', (req, res) => {
   const user_id = req.cookies.user_id;
+  if (!user_id) {
+    return res.redirect('/login');
+  }
   const user = users[user_id];
   res.render("urls_new", { user });
 });
 
 app.get("/urls/:shortURL", (req, res) => { 
   const user_id = req.cookies.user_id;
+  if (!user_id) {
+    return res.redirect('/login');
+  }
   const user = users[user_id];
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user };
   res.render("urls_show", templateVars)

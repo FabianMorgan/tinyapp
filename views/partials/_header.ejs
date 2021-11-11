@@ -9,14 +9,16 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         <a class="nav-item nav-link" href="/urls/About-Me">About Me</a>
-        <a class="nav-item nav-link" href="/register">Register</a>
-        <a class="nav-item nav-link" href="/login">Login</a>
+        <% if (typeof user === 'object') { %>
+          <p><%= user.email %></p>
+          <form method="POST" action="/logout">
+            <button type="submit">Logout</button>
+          </form>
+        <% } else { %>
+          <a class="nav-item nav-link" href="/register">Register</a>
+          <a class="nav-item nav-link" href="/login">Login</a>
+        <% } %>
       </div>
-      <% if (typeof user === 'object') { %>
-        <div>
-          <%= user.email %>
-        </div>
-      <% } %>
     </div>
   </nav>
 </header>
