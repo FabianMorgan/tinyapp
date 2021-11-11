@@ -52,6 +52,11 @@ app.get("/About-Me", (req, res) => {
 
 // use res.render to load up an ejs view file
 
+// register a new user
+app.get('/register', (req, res) => {
+  res.render("register");
+});
+
 app.get("/urls", (req, res) => {
   const templateVars = {urls: urlDatabase};
   res.render("urls_index", templateVars);
