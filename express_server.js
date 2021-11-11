@@ -15,8 +15,14 @@ app.use(morgan('combined'));
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longUrl: "http://www.lighthouselabs.ca",
+    userId: "userRandomID"
+  },
+  "9sm5xK": {
+    longUrl: "http://www.google.com",
+    userId: "userRandomID"
+  }
 };
 
 const generateRandomString = (length) => {
@@ -153,6 +159,7 @@ app.get("/urls", (req, res) => {
   }
   const user = users[user_id];
   const templateVars = { urls: urlDatabase, user };
+  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -172,7 +179,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.redirect('/login');
   }
   const user = users[user_id];
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longUrl, user };
   res.render("urls_show", templateVars)
 });
 
@@ -187,12 +194,16 @@ app.get('/u/:shortURL', (req, res) => {
 })
 
 app.post('/urls', (req, res) => {
+  const user_id = req.cookies.user_id;
   console.log(req.body); //Log the POST request body to the console.
   //Update express server so shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
   const shortURL = generateRandomString(6);
   const longURL = req.body.longURL; 
   // Update the database, urlDatabase
-  urlDatabase[shortURL] = longURL;  
+  urlDatabase[shortURL] = {
+    longURL,
+    userId: user_id
+  };  
   res.redirect(`/urls/${shortURL}`);
   //res.send("OK"); //Respond with "OK".
 });
