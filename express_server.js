@@ -75,18 +75,64 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (email === '') {
+    res.status(400).send("Email must not be empty");
+  }
+  if (password === '') {
+    res.status(400).send("Password must not be empty");
+  }
+
   const numberOfUsers = Object.keys(users).length;
   const userId = `user${numberOfUsers + 1}RandomID`;
+
   users[userId] = {
     id: userId,
-    email: req.body.email,
-    password: req.body.password
+    email,
+    password
   };
 
   // set new user id into cookie & redirect to urls
   res.cookie('user_id', userId);
 
   res.redirect("/urls");
+});
+
+// login existing user
+app.get('/login', (req, res) => {
+  const user_id = req.cookies.user_id;
+  const user = users[user_id];
+  res.render("login", { user });
+});
+
+function findUser (email, password) {
+  let foundUser;
+  const usersArr = Object.values(users);
+  for (let i = 0; i < usersArr.length; i++) {
+    const user = usersArr[i];
+    if (user.email === email && user.password === password) {
+      foundUser = user;
+      break;
+    }
+  }
+  return foundUser;
+}
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const foundUser = findUser(email, password);
+
+  if (foundUser && foundUser.id) {
+    // set found user id into cookie & redirect to urls
+    res.cookie('user_id', foundUser.id);
+
+    res.redirect("/urls");
+  }
+
+  res.status(400).send("Incorrect Login");
 });
 
 app.get("/urls", (req, res) => {
