@@ -25,6 +25,7 @@
         <tr>
           <td><%= url %></td>
           <td><%= urls[url] %></td>
+          <!--- added delete buttons and extra <td></td> -->
           <td>
             <form method="POST" action="/urls/<%= url %>/delete">
               <button type = "submit">Delete</button>
