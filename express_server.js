@@ -1,9 +1,13 @@
 const express = require('express');
 const app = express ();
+const morgan = require('morgan');
 const PORT = 8080; //default port 8080
-
 const bodyParser = require("body-parser");
+
+//Middleware
+// REQ -----> Server ----> MIDDLEWARE <----> Route ----> EJS to HTML conversion ----> RES
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(morgan('combined'));
 
 //Set ejs as the view engine.
 app.set("view engine", "ejs");
@@ -77,6 +81,13 @@ app.post('/urls', (req, res) => {
   urlDatabase[shortURL] = longURL;  
   res.redirect(`/urls/${shortURL}`);
   //res.send("OK"); //Respond with "OK".
+});
+
+app.post('/urls/:shortURL/delete', (req, res) => {
+  console.log("POST DELETED!");
+  console.log(req.params.shortURL);
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
