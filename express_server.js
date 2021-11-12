@@ -162,14 +162,17 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const foundUser = findUser(email);
+  console.log("foundUser", foundUser);
 
-  if (!email || !password) {
+
+  if (!email || !password || email === "" || password === "") {
     return res.status(400).send("Missing email or password. <a href='/login'>Try again.</a>");
   }  
   if (!foundUser) {
     return res.status(400).send("User Not Found. <a href='/login'>Try again.</a>");
   }  
-  
+  //const hashedPassword = bcrypt.hashSync(foundUser.password, 10);
+
   if (!bcrypt.compareSync(password, foundUser.password)) {
       return res.status(400).send("Invalid password. <a href='/login'>Try again.</a>");
   }
@@ -177,11 +180,6 @@ app.post('/login', (req, res) => {
     req.session.user_id = foundUser.id
     res.redirect('/urls');
 });
-
-
-
-  
-
 
 
 app.post('/register', (req, res) => {
@@ -196,7 +194,7 @@ app.post('/register', (req, res) => {
     email,
     password: hashedPassword
   };
-
+  console.log(users);
   // set new user id into cookie & redirect to urls
   req.session.user_id = users[userId].id;
 
