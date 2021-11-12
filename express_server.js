@@ -83,7 +83,7 @@ const users = {
 
 // register a new user
 app.get('/register', (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   if (user_id) {
     return res.redirect('/urls');
   }
@@ -94,7 +94,7 @@ app.get('/register', (req, res) => {
 
 // login existing user
 app.get('/login', (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   if (user_id) {
     return res.redirect('/urls');
   }
@@ -116,7 +116,7 @@ function findUser (email) {
 }
 
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
 
   if (!user_id) {
     return res.redirect('/login');
@@ -124,13 +124,12 @@ app.get("/urls", (req, res) => {
 
   const user = users[user_id];
   const templateVars = { urls: urlDatabase, user };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
 //Add get route to show form in urls_new.ejs
 app.get('/urls/new', (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   if (!user_id) {
     return res.redirect('/login');
   }
@@ -139,7 +138,7 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => { 
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   if (!user_id) {
     return res.redirect('/login');
   }
@@ -175,7 +174,7 @@ app.post('/login', (req, res) => {
       return res.status(400).send("Invalid password. <a href='/login'>Try again.</a>");
   }
 
-    res.cookie("user_id", foundUser.id)
+    req.session.user_id = foundUser.id
     res.redirect('/urls');
 });
 
@@ -199,13 +198,13 @@ app.post('/register', (req, res) => {
   };
 
   // set new user id into cookie & redirect to urls
-  res.cookie('user_id', userId);
+  req.session.user_id = users[userId].id;
 
   res.redirect("/urls");
 });
 
 app.post('/urls', (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.ssession.user_id;
   console.log(req.body); //Log the POST request body to the console.
   //Update express server so shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
   const shortURL = generateRandomString(6);
@@ -227,7 +226,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null
   res.redirect('/login');
 });
 
