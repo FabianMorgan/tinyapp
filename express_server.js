@@ -3,14 +3,21 @@ const app = express ();
 const morgan = require('morgan');
 const PORT = 8080; //default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
+const bcrypt = require('bcryptjs');
+
 
 
 //Middleware
 // REQ -----> Server ----> MIDDLEWARE <----> Route ----> EJS to HTML conversion ----> RES
-app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(morgan('combined'));
+app.use(morgan('dev'));
+
+app.use(cookieSession({
+  name: "session",
+  keys: ['key1', 'key2']
+
+})); 
 
 //Set ejs as the view engine.
 app.set("view engine", "ejs");
@@ -95,12 +102,12 @@ app.get('/login', (req, res) => {
   res.render("login", { user });
 });
 
-function findUser (email, password) {
+function findUser (email) {
   let foundUser;
   const usersArr = Object.values(users);
   for (let i = 0; i < usersArr.length; i++) {
     const user = usersArr[i];
-    if (user.email === email && user.password === password) {
+    if (user.email === email) {
       foundUser = user;
       break;
     }
@@ -109,10 +116,12 @@ function findUser (email, password) {
 }
 
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.cookies["user_id"];
+
   if (!user_id) {
     return res.redirect('/login');
   }
+
   const user = users[user_id];
   const templateVars = { urls: urlDatabase, user };
   console.log(templateVars);
@@ -153,46 +162,40 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const foundUser = findUser(email, password);
+  const foundUser = findUser(email);
 
-  if (foundUser && foundUser.id) {
-    // set found user id into cookie & redirect to urls
-    res.cookie('user_id', foundUser.id);
-  } 
-  res.redirect("/urls");    
-});
-
-app.post('/login', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  if (!foundUser || !foundUser.id) {
-    return res.status(400).send("Incorrect Login. <a href='/login'>Try again.</a>"); 
-    res.redirect('/login'); 
+  if (!email || !password) {
+    return res.status(400).send("Missing email or password. <a href='/login'>Try again.</a>");
   }  
-});
-
-
-app.post('/login', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  if (!email || !password) {   
-  return res.status(400).send("Missing email or password. <a href='/login'>Try again.</a>");
+  if (!foundUser) {
+    return res.status(400).send("User Not Found. <a href='/login'>Try again.</a>");
+  }  
+  
+  if (!bcrypt.compareSync(password, foundUser.password)) {
+      return res.status(400).send("Invalid password. <a href='/login'>Try again.</a>");
   }
+
+    res.cookie("user_id", foundUser.id)
+    res.redirect('/urls');
 });
+
+
+
+  
 
 
 
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const numberOfUsers = Object.keys(users).length;
   const userId = `user${numberOfUsers + 1}RandomID`;
 
   users[userId] = {
     id: userId,
     email,
-    password
+    password: hashedPassword
   };
 
   // set new user id into cookie & redirect to urls
