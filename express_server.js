@@ -5,6 +5,7 @@ const PORT = 8080; //default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 
+
 //Middleware
 // REQ -----> Server ----> MIDDLEWARE <----> Route ----> EJS to HTML conversion ----> RES
 app.use(cookieParser());
@@ -64,12 +65,12 @@ const users = {
   userRandomID: {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "one"
   },
   user2RandomID: {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: "dish"
   }
 }
 
@@ -83,31 +84,6 @@ app.get('/register', (req, res) => {
   res.render("register", { user });
 });
 
-app.post('/register', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-
-  if (email === '') {
-    res.status(400).send("Email must not be empty");
-  }
-  if (password === '') {
-    res.status(400).send("Password must not be empty");
-  }
-
-  const numberOfUsers = Object.keys(users).length;
-  const userId = `user${numberOfUsers + 1}RandomID`;
-
-  users[userId] = {
-    id: userId,
-    email,
-    password
-  };
-
-  // set new user id into cookie & redirect to urls
-  res.cookie('user_id', userId);
-
-  res.redirect("/urls");
-});
 
 // login existing user
 app.get('/login', (req, res) => {
@@ -131,26 +107,6 @@ function findUser (email, password) {
   }
   return foundUser;
 }
-
-app.post('/login', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const foundUser = findUser(email, password);
-
-  if (foundUser && foundUser.id) {
-    // set found user id into cookie & redirect to urls
-    res.cookie('user_id', foundUser.id);
-
-    res.redirect("/urls");
-  }
-
-  res.status(400).send("Incorrect Login");
-});
-
-app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
-  res.redirect('/login');
-});
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
@@ -183,15 +139,67 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars)
 });
 
-app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.long_url;
-  res.redirect('/urls');
-}); 
 
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL]; 
   res.redirect(longURL);
 })
+
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.long_url;
+  res.redirect('/urls');
+}); 
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const foundUser = findUser(email, password);
+
+  if (foundUser && foundUser.id) {
+    // set found user id into cookie & redirect to urls
+    res.cookie('user_id', foundUser.id);
+  } 
+  res.redirect("/urls");    
+});
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!foundUser || !foundUser.id) {
+    return res.status(400).send("Incorrect Login. <a href='/login'>Try again.</a>"); 
+    res.redirect('/login'); 
+  }  
+});
+
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password) {   
+  return res.status(400).send("Missing email or password. <a href='/login'>Try again.</a>");
+  }
+});
+
+
+
+app.post('/register', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  
+  const numberOfUsers = Object.keys(users).length;
+  const userId = `user${numberOfUsers + 1}RandomID`;
+
+  users[userId] = {
+    id: userId,
+    email,
+    password
+  };
+
+  // set new user id into cookie & redirect to urls
+  res.cookie('user_id', userId);
+
+  res.redirect("/urls");
+});
 
 app.post('/urls', (req, res) => {
   const user_id = req.cookies.user_id;
@@ -214,6 +222,24 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect('/login');
+});
+
+const urlsForUser = function(id) {
+  const results = {};
+
+  const keys = Object.keys(urlDatabase);
+  for (const shortURL of keys) {
+    const url = urlDatabase[shortURL];
+    if (url.user_id === id) {
+      results[shortURL] = url;
+    }
+  }
+  results
+};
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
